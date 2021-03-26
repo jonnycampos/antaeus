@@ -86,3 +86,22 @@ The code given is structured as follows. Feel free however to modify the structu
 * [Sqlite3](https://sqlite.org/index.html) - Database storage engine
 
 Happy hacking 😁!
+
+
+#Main Challenges
+After a first analysis I discovered these are the main challenges to solve:
+* A way to mock a payment provider, so it could be easily replaced with a real one
+* Create a scheduler in Kotlin. Use a Cron service instead
+* Deploy the scheduler in a different docker instance to decouple from the rest service
+
+But also I need to find out
+* How to debug kotlin in IntelliJ
+* How to create JUnit in Kotlin
+
+
+#Component Diagram
+TBD 
+
+
+#Tasks breakdown
+TBD
