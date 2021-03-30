@@ -95,8 +95,11 @@ After a first analysis I discovered these are the main challenges to solve:
 * Deploy the scheduler in a different docker instance to decouple from the rest service
 
 But also I need to find out
+* Learn Kotlin basics
+* Learn Docker basics
 * How to debug kotlin in IntelliJ
-* How to create JUnit in Kotlin
+* How to create and launch JUnit in Kotlin
+* How to access and Write sqllite database
 
 
 #Component Diagram
