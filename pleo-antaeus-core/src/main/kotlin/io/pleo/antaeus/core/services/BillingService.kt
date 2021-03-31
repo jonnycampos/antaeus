@@ -64,13 +64,14 @@ class BillingService(
     /**
      * Invoice payment given the invoice ID
      */
-    fun payInvoice(id : Int) {
+    fun payInvoice(id : Int): Invoice? {
         try {
             val invoice: Invoice = invoiceService.fetch(id)
-            payInvoice(invoice)
+            return payInvoice(invoice)
         } catch(e: InvoiceNotFoundException) {
             logger.error { "Invoice: $id  does not exist"}
         }
+        return null
     }
 
 
@@ -129,7 +130,7 @@ class BillingService(
             //Otherwise we can try to charge the invoice through the Payment Service
             invoiceStatus = try {
                 if (paymentProvider.charge(invoice)) {
-                    logger.error { "Invoice: ${invoice.id} successfully processed and paid"}
+                    logger.info { "Invoice: ${invoice.id} successfully processed and paid"}
                     InvoiceStatus.PAID
                 } else {
                     logger.error { "Invoice: ${invoice.id} payment failed"}

@@ -82,10 +82,25 @@ class AntaeusRest(
                     }
 
                     path("billing") {
+
+                        //URL: /rest/v1/billing/pending
+                        get("pending") {
+                            it.json(billingService.processPendingInvoices())
+                        }
+
+                        //URL: /rest/v1/billing/retry
+                        get("retry") {
+                            it.json(billingService.processRetryInvoices())
+                        }
+
+
                         //URL: /rest/v1/billing/{:id}
                         get(":id") {
-                            it.json(billingService.payInvoice(it.pathParam("id").toInt()))
+                            billingService.payInvoice(it.pathParam("id").toInt())?.let { it1 -> it.json(it1) }
                         }
+
+
+
                     }
 
 
