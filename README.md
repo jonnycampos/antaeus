@@ -90,11 +90,10 @@ Happy hacking 😁!
 
 #Main Challenges
 After a first analysis I discovered these are the main challenges to solve:
-* A way to mock a payment provider, so it could be easily replaced with a real one
 * Create a scheduler in Kotlin. Use a Cron service instead
 * Deploy the scheduler in a different docker instance to decouple from the rest service
 
-But also I need to find out
+But also I need to find out how
 * Learn Kotlin basics
 * Learn Docker basics
 * How to debug kotlin in IntelliJ
@@ -102,9 +101,36 @@ But also I need to find out
 * How to access and Write sqllite database
 
 
+#Application Versions
+The application will be released in different versions
+##Antaeus 1.0 
+MVP of the application. It will cover main requirements with the main goal
+of processing invoices to show the capabilities of the app
+Stories and Tasks to cover:
+- BillingService implementation to handle pending invoices (change status of invoices in database)
+- Rest call to execute billing service 
+- A simple scheduler in a different project with no dependency with others
+- Scheduler calls Rest API
+- JUnit Billing Service
+- Simple retry mechanism to schedule daily invoices where the payment fails
+- Everything will run in a single docker container
+
+##Antaeus 1.1
+- The scheduler will run in a different docker instance (decouple from the main logic)
+- Retry mechanism based in the number of retries (Example, it will retry 3 times)
+- Payment Provider mock will return a payment state instead of a Boolean. Real Payment Providers work with states that
+  are different from one payment method to another.
+- New scheduler to update the status of the payment executed every day
+- Integration Test to check database changes
+
+##Antaeus 1.2
+- Security end to end for API rest 
+- Payment Provider mock will accept a payment token (recurring payment stored) and a payment method 
+- Implement Quartz for schedulers (Easier way to change frequency)
+- Add concurrency to manage calls to the external provider
+
 #Component Diagram
 TBD 
 
 
-#Tasks breakdown
-TBD
+
