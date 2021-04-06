@@ -67,7 +67,7 @@ class BillingServiceTest {
             customerService = existingCustomer()
         )
         val invoiceAfterPay = billingService.payInvoice(invoicePending1)
-        Assertions.assertEquals(InvoiceStatus.FAIL, invoiceAfterPay.status)
+        Assertions.assertEquals(InvoiceStatus.RETRY, invoiceAfterPay.status)
     }
 
 
@@ -103,7 +103,7 @@ class BillingServiceTest {
             paymentProvider = paymentOK(),
             customerService = existingCustomer()
         )
-        val counter = billingService.processPendingInvoices();
+        val counter = billingService.processPendingInvoices()
         Assertions.assertEquals(counter, 2)
     }
 

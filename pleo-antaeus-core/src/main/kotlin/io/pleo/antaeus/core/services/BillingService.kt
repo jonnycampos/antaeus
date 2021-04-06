@@ -1,11 +1,10 @@
 package io.pleo.antaeus.core.services
 
-import io.pleo.antaeus.core.exceptions.CurrencyMismatchException
+
 import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
 import io.pleo.antaeus.core.exceptions.InvoiceNotFoundException
 import io.pleo.antaeus.core.exceptions.NetworkException
 import io.pleo.antaeus.core.external.PaymentProvider
-import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.models.Customer
 import io.pleo.antaeus.models.Invoice
 import io.pleo.antaeus.models.InvoiceStatus
@@ -27,7 +26,7 @@ class BillingService(
      * Return the number of invoices successfully paid
      */
     fun processPendingInvoices() : Int {
-        logger.debug{"Processing payment of PENDING invoices"}
+        logger.info{"Processing payment of PENDING invoices"}
         var counter = 0
         invoiceService.fetchAll().
             filter{ invoice ->  invoice.status == InvoiceStatus.PENDING }.
@@ -37,7 +36,7 @@ class BillingService(
                     counter++
                 }
             }
-        logger.debug{"Processed successfully $counter  invoices"}
+        logger.info{"Processed successfully $counter  invoices"}
         return counter
     }
 
@@ -48,7 +47,7 @@ class BillingService(
      * Return the number of invoices successfully paid
      */
     fun processRetryInvoices() : Int {
-        logger.debug{"Processing payment of RETRY invoices"}
+        logger.info{"Processing payment of RETRY invoices"}
         var counter = 0
         invoiceService.fetchAll().
             filter{ invoice ->  invoice.status == InvoiceStatus.RETRY }.
@@ -57,7 +56,7 @@ class BillingService(
                     counter++
                 }
             }
-        logger.debug{"Processed successfully $counter  invoices"}
+        logger.info{"Processed successfully $counter  invoices"}
         return counter
     }
 
@@ -86,7 +85,7 @@ class BillingService(
      *
      * For all valid invoices, we will call the payment provider:
      * - If the payment is done, the status of the invoice will be set to PAID
-     * - If the payment fails, the status of the invoice will be set to FAIL
+     * - If the payment fails, the status of the invoice will be set to RETRY
      *
      * In case there are technical issues the status will be RETRY so a different scheduler can try later
      *
@@ -133,8 +132,9 @@ class BillingService(
                     logger.info { "Invoice: ${invoice.id} successfully processed and paid"}
                     InvoiceStatus.PAID
                 } else {
+                    //This is a temporal solution. For this situation we need a retry system with a counter
                     logger.error { "Invoice: ${invoice.id} payment failed"}
-                    InvoiceStatus.FAIL
+                    InvoiceStatus.RETRY
                 }
 
             } catch (e: NetworkException) {

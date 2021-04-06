@@ -24,6 +24,6 @@ interface PaymentProvider {
           `NetworkException`: when a network error happens.
      */
 
-    fun charge(invoice: Invoice): Boolean = true
+    fun charge(invoice: Invoice): Boolean
 
 }

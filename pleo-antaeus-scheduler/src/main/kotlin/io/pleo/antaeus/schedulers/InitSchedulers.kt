@@ -14,10 +14,10 @@ fun main() {
      * Launch the scheduler for pending invoices
      */
     AntaeusScheduler(
-        firstStartMilliseconds = 5000,//UtilsScheduler.untilFirstDayNextMonthMilliseconds(),
+        firstStartMilliseconds = UtilsScheduler.untilFirstDayNextMonthMilliseconds(),
         schedulingPeriodMilliseconds = UtilsScheduler.millisecondsOneDay(),
         restCall = "http://localhost:7000/rest/v1/billing/pending",
-        firstDayMonthExecution = false
+        firstDayMonthExecution = true
     ).schedule()
 
     /**

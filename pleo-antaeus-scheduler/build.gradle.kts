@@ -6,5 +6,7 @@ kotlinProject()
 
 
 dependencies {
-    implementation(project(":pleo-antaeus-core"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.3")
+
 }
