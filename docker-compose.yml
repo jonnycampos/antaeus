@@ -1,0 +1,33 @@
+version: "3.9"
+
+
+services:
+
+  pleo-antaeus:
+    build:
+      dockerfile: ./app.Dockerfile
+      context: .
+    image: pleo-antaeus:pleo-antaeus
+    volumes:
+      - pleo-antaeus-build-cache:/root/.gradle
+    ports:
+      - 7000:7000
+    tty: true
+    expose:
+      - 7000
+    stdin_open: true
+
+  scheduler:
+    build:
+      dockerfile: ./scheduler.Dockerfile
+      context: .
+    image: pleo-antaeus-scheduler:pleo-antaeus
+
+
+
+ # quartz:
+ #  image: cexbbartolome/quartz-http:latest
+
+
+volumes:
+  pleo-antaeus-build-cache:

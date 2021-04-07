@@ -6,7 +6,7 @@ import io.pleo.antaeus.schedulers.helper.UtilsScheduler
 import java.net.URL
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import kotlinx.coroutines.*
+
 
 
 
@@ -25,14 +25,10 @@ class AntaeusScheduler(
      */
     private fun callRest() {
         logger.info { "Calling the scheduler rest: $restCall"}
-        runBlocking {
-            val resultRest: Deferred<String> =
-            withContext(Dispatchers.IO) {
-                async { URL(restCall).readText() }
-            }
-        }
-        //logger.info { "End of API call. This should be invoked async. ${resultRest.await()}" }
+        val resultRest = URL(restCall).readText()
+        logger.info { "End of API call. Processed:   $resultRest" }
     }
+
 
 
 

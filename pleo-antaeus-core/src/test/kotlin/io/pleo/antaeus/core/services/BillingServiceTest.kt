@@ -3,8 +3,6 @@ package io.pleo.antaeus.core.services
 import io.mockk.every
 import io.mockk.mockk
 import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
-import io.pleo.antaeus.core.exceptions.NetworkException
-import io.pleo.antaeus.core.external.PaymentProvider
 import io.pleo.antaeus.models.*
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -25,82 +23,82 @@ class BillingServiceTest {
 
 
     @Test
-    fun `change status of a Pending invoice after payment OK`() {
+    fun `change status of a Pending invoice to Paid after payment OK`() {
         val billingService = BillingService(
             invoiceService = updateStatusOK(),
-            paymentProvider = paymentOK(),
+            paymentService = paymentOK(),
             customerService = existingCustomer()
         )
-        val invoiceAfterPay = billingService.payInvoice(invoicePending1)
+        val invoiceAfterPay = billingService.processInvoice(invoicePending1)
         Assertions.assertEquals(InvoiceStatus.PAID, invoiceAfterPay.status)
     }
 
     @Test
-    fun `payment of an invoice with non existing consumer`() {
+    fun `change status of a Pending invoice to Fail if customer does not exist`() {
         val billingService = BillingService(
             invoiceService = updateStatusOK(),
-            paymentProvider = paymentOK(),
+            paymentService = paymentOK(),
             customerService = nonExistingCustomer()
         )
-        val invoiceAfterPay = billingService.payInvoice(invoicePending1)
+        val invoiceAfterPay = billingService.processInvoice(invoicePending1)
         Assertions.assertEquals(InvoiceStatus.FAIL, invoiceAfterPay.status)
     }
 
 
     @Test
-    fun `payment of an invoice with currency mismatch`() {
+    fun `change status of a Pending invoice to Fail if currency does not match`() {
         val billingService = BillingService(
             invoiceService = updateStatusOK(),
-            paymentProvider = paymentOK(),
+            paymentService = paymentOK(),
             customerService = existingCustomerWrongCurrency()
         )
-        val invoiceAfterPay = billingService.payInvoice(invoicePending1)
+        val invoiceAfterPay = billingService.processInvoice(invoicePending1)
         Assertions.assertEquals(InvoiceStatus.FAIL, invoiceAfterPay.status)
     }
 
 
     @Test
-    fun `change of status of an invoice after the payment fails`() {
+    fun `change status of a Pending invoice to Retry if payment is KO`() {
         val billingService = BillingService(
             invoiceService = updateStatusOK(),
-            paymentProvider = paymentKO(),
+            paymentService = paymentKO(),
             customerService = existingCustomer()
         )
-        val invoiceAfterPay = billingService.payInvoice(invoicePending1)
+        val invoiceAfterPay = billingService.processInvoice(invoicePending1)
         Assertions.assertEquals(InvoiceStatus.RETRY, invoiceAfterPay.status)
     }
 
 
     @Test
-    fun `payment of an invoice with network issue`() {
+    fun `change status of a Pending invoice to Retry if network error during payment`() {
         val billingService = BillingService(
             invoiceService = updateStatusOK(),
-            paymentProvider = paymentNetworkIssue(),
+            paymentService = paymentNetworkIssue(),
             customerService = existingCustomer()
         )
-        val invoiceAfterPay = billingService.payInvoice(invoicePending1)
+        val invoiceAfterPay = billingService.processInvoice(invoicePending1)
         Assertions.assertEquals(InvoiceStatus.RETRY, invoiceAfterPay.status)
     }
 
 
     @Test
-    fun `payment of an invoice with PAID status`() {
+    fun `paid invoice does not change status after being processed`() {
         val billingService = BillingService(
             invoiceService = updateStatusOK(),
-            paymentProvider = paymentKO(),
+            paymentService = paymentKO(),
             customerService = existingCustomer()
         )
-        val invoiceAfterPay = billingService.payInvoice(invoicePaid)
+        val invoiceAfterPay = billingService.processInvoice(invoicePaid)
         Assertions.assertEquals(InvoiceStatus.PAID, invoiceAfterPay.status)
     }
 
 
 
     @Test
-    fun `payment of PENDING invoices`() {
+    fun `change status of all Pending invoices to Paid after processing`() {
         val billingService = BillingService(
             invoiceService = updateStatusOK(),
-            paymentProvider = paymentOK(),
+            paymentService = paymentOK(),
             customerService = existingCustomer()
         )
         val counter = billingService.processPendingInvoices()
@@ -108,10 +106,10 @@ class BillingServiceTest {
     }
 
     @Test
-    fun `payment of RETRY invoices`() {
+    fun `change status of all Retry invoices to Paid after processing`() {
         val billingService = BillingService(
             invoiceService = updateStatusOK(),
-            paymentProvider = paymentOK(),
+            paymentService = paymentOK(),
             customerService = existingCustomer()
         )
         val counter = billingService.processRetryInvoices()
@@ -123,39 +121,39 @@ class BillingServiceTest {
     /////////PRIVATE HELPERS TO MOCK CUSTOMER SERVICE
     private fun nonExistingCustomer(): CustomerService {
         return mockk {
-            every<Customer> { fetch(any()) }.throws(CustomerNotFoundException(1))
+            every { fetch(any()) }.throws(CustomerNotFoundException(1))
         }
     }
 
     private fun existingCustomer(): CustomerService {
         return mockk {
-            every<Customer> { fetch(any()) } returns customer
+            every { fetch(any()) } returns customer
         }
     }
 
 
     private fun existingCustomerWrongCurrency(): CustomerService {
         return mockk {
-            every<Customer> { fetch(any()) } returns customerWrongCurrency
+            every { fetch(any()) } returns customerWrongCurrency
         }
     }
 
     /////////PRIVATE HELPERS TO MOCK PAYMENT PROVIDER
-    private fun paymentOK(): PaymentProvider {
+    private fun paymentOK(): PaymentService {
         return mockk {
-            every<Boolean> { charge(any()) } returns true
+            every { payInvoice(any()) } returns PaymentStatus.PAYMENT_SUCCESS
         }
     }
 
-    private fun paymentKO(): PaymentProvider {
+    private fun paymentKO(): PaymentService {
         return mockk {
-            every<Boolean> { charge(any()) } returns false
+            every{ payInvoice(any()) } returns PaymentStatus.PAYMENT_ERROR
         }
     }
 
-    private fun paymentNetworkIssue(): PaymentProvider {
+    private fun paymentNetworkIssue(): PaymentService {
         return mockk {
-            every<Boolean> { charge(any()) }.throws(NetworkException())
+            every{ payInvoice(any()) } returns PaymentStatus.PAYMENT_ERROR
         }
     }
 
@@ -163,7 +161,7 @@ class BillingServiceTest {
     /////////PRIVATE HELPERS TO MOCK INVOICE SERVICE
     private fun updateStatusOK(): InvoiceService {
         return mockk {
-            every<Unit> { updateInvoiceStatus(any()) } returns Unit
+            every { updateInvoiceStatus(any()) } returns Unit
             every {fetchAll()} returns listOf(invoicePending1,invoicePending2,invoiceFail,invoiceRetry,invoicePaid)
         }
     }

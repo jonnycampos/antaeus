@@ -3,20 +3,22 @@ package io.pleo.antaeus.core.services
 
 import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
 import io.pleo.antaeus.core.exceptions.InvoiceNotFoundException
-import io.pleo.antaeus.core.exceptions.NetworkException
-import io.pleo.antaeus.core.external.PaymentProvider
 import io.pleo.antaeus.models.Customer
 import io.pleo.antaeus.models.Invoice
 import io.pleo.antaeus.models.InvoiceStatus
+import io.pleo.antaeus.models.PaymentStatus
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
+
 
 
 private val logger = KotlinLogging.logger {}
 
 class BillingService(
-    private val paymentProvider: PaymentProvider,
     private val customerService: CustomerService,
-    private val invoiceService: InvoiceService
+    private val invoiceService: InvoiceService,
+    private val paymentService: PaymentService
 ) {
 
 
@@ -32,7 +34,7 @@ class BillingService(
             filter{ invoice ->  invoice.status == InvoiceStatus.PENDING }.
             forEach{
                     invoice ->
-                if (payInvoice(invoice).status == InvoiceStatus.PAID) {
+                if (processInvoice(invoice).status == InvoiceStatus.PAID) {
                     counter++
                 }
             }
@@ -52,7 +54,7 @@ class BillingService(
         invoiceService.fetchAll().
             filter{ invoice ->  invoice.status == InvoiceStatus.RETRY }.
             forEach { invoice ->
-                if (payInvoice(invoice).status == InvoiceStatus.PAID) {
+                if (processInvoice(invoice).status == InvoiceStatus.PAID) {
                     counter++
                 }
             }
@@ -63,15 +65,44 @@ class BillingService(
     /**
      * Invoice payment given the invoice ID
      */
-    fun payInvoice(id : Int): Invoice? {
+    fun processInvoice(id : Int): Invoice? {
         try {
             val invoice: Invoice = invoiceService.fetch(id)
-            return payInvoice(invoice)
+            return processInvoice(invoice)
         } catch(e: InvoiceNotFoundException) {
             logger.error { "Invoice: $id  does not exist"}
         }
         return null
     }
+
+    /**
+     * Check if the invoice is in a final state
+     */
+    private fun invoiceIsInFinalState(invoice : Invoice) : Boolean {
+        return (invoice.status != InvoiceStatus.PENDING && invoice.status != InvoiceStatus.RETRY)
+    }
+
+
+    /**
+     * Check if the consumer of an invoice is valid:
+     * - Exists
+     * - The currency in the customer is the same than the one in the invoice
+     */
+    private fun customerInInvoiceIsValid(invoice : Invoice) : Boolean {
+
+        return try {
+            val customer : Customer? = customerService.fetch(invoice.customerId)
+            if (customer != null) {
+                (customer.currency == invoice.amount.currency)
+            } else {
+                false
+            }
+        } catch(e : CustomerNotFoundException) {
+            false
+        }
+    }
+
+
 
 
     /**
@@ -91,66 +122,65 @@ class BillingService(
      *
      * The method will return the invoice with the new status
      */
-    fun payInvoice(invoice : Invoice): Invoice {
-        logger.debug{"Processing payment of invoice:  ${invoice.id}"}
+    fun processInvoice(invoice : Invoice): Invoice {
+        logger.debug { "Processing payment of invoice:  ${invoice.id}" }
 
-        var invoiceStatus : InvoiceStatus = InvoiceStatus.PAID
+        var invoiceStatus: InvoiceStatus = InvoiceStatus.PAID
         val updatedInvoice: Invoice = invoice
-        var customer : Customer? = null
+
 
         //NOTE: We will be dealing with consumer and currency validation from this service
         //We should call to external payment provider when the data is validated internally
 
         //Invoice Validation: We will only manage PENDING invoices. Early Return
-        if (invoice.status != InvoiceStatus.PENDING && invoice.status != InvoiceStatus.RETRY) {
-            logger.error { "Invoice: ${invoice.id} won't be processed since the status is ${invoice.status}"}
+        if (invoiceIsInFinalState(invoice)) {
+            logger.error { "Invoice: ${invoice.id} won't be processed since the status is ${invoice.status}" }
             return invoice
         }
 
-        //Invoice Validation: Consumer exists
-        try {
-            customer = customerService.fetch(invoice.customerId)
-        } catch(e : CustomerNotFoundException) {
-            logger.error { "Invoice: ${invoice.id} customer ${invoice.customerId} does not exist"}
+
+        //Invoice Validation: Customer is valid. Early return
+        if (!customerInInvoiceIsValid(invoice)) {
+            logger.error { "Invoice: ${invoice.id} customer ${invoice.customerId} is invalid" }
             invoiceStatus = InvoiceStatus.FAIL
         }
 
 
-        //Invoice Validation: Currency. No need to charge
-        if (customer != null) {
-            if (customer.currency != invoice.amount.currency) {
-                logger.error { "Invoice: ${invoice.id} customer ${invoice.customerId} different currencies"}
-                invoiceStatus = InvoiceStatus.FAIL
-            }
-        }
-
         //If no internal validation failed we can call the external payment provider
         if (invoiceStatus != InvoiceStatus.FAIL) {
-            //Otherwise we can try to charge the invoice through the Payment Service
-            invoiceStatus = try {
-                if (paymentProvider.charge(invoice)) {
-                    logger.info { "Invoice: ${invoice.id} successfully processed and paid"}
-                    InvoiceStatus.PAID
-                } else {
-                    //This is a temporal solution. For this situation we need a retry system with a counter
-                    logger.error { "Invoice: ${invoice.id} payment failed"}
-                    InvoiceStatus.RETRY
+            runBlocking {
+                val paymentResult =
+                    async { paymentService.payInvoice(invoice) }
+                invoiceStatus = when (paymentResult.await()) {
+                    PaymentStatus.NETWORK_ERROR -> {
+                        logger.error { "Invoice: ${invoice.id}. Network error" }
+                        InvoiceStatus.RETRY
+                    }
+                    PaymentStatus.PAYMENT_ERROR -> {
+                        logger.error { "Invoice: ${invoice.id} payment failed" }
+                        InvoiceStatus.RETRY
+                    }
+                    PaymentStatus.PAYMENT_SUCCESS -> {
+                        logger.info { "Invoice: ${invoice.id} successfully processed and paid" }
+                        InvoiceStatus.PAID
+                    }
                 }
 
-            } catch (e: NetworkException) {
-                //Retry only in case of network issues
-                logger.error { "Invoice: ${invoice.id}. Network error"}
-                InvoiceStatus.RETRY
             }
         }
 
-        updatedInvoice.status = invoiceStatus
-
         //Update the status of the invoice in the database
-        invoiceService.updateInvoiceStatus(invoice)
-
+        updatedInvoice.status = invoiceStatus
+        invoiceService.updateInvoiceStatus(updatedInvoice)
         return updatedInvoice
-
     }
+
+
+
+
+
+
+
+
 
 }

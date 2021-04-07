@@ -96,7 +96,7 @@ class AntaeusRest(
 
                         //URL: /rest/v1/billing/{:id}
                         get(":id") {
-                            billingService.payInvoice(it.pathParam("id").toInt())?.let { it1 -> it.json(it1) }
+                            billingService.processInvoice(it.pathParam("id").toInt())?.let { it1 -> it.json(it1) }
                         }
 
 

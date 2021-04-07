@@ -116,21 +116,21 @@ Stories and Tasks to cover:
 - Everything will run in a single docker container
 
 ##Antaeus 1.1
-- The scheduler will run in a different docker instance (decouple from the main logic)
-- Retry mechanism based in the number of retries (Example, it will retry 3 times)
+- The scheduler will run in a different docker instance (decouple from the main logic) (!)
+- Retry mechanism based on the number of retries (Example, it will retry 3 times)
 - Payment Provider mock will return a payment state instead of a Boolean. Real Payment Providers work with states that
   are different from one payment method to another.
 - New scheduler to update the status of the payment executed every day
 - Integration Test to check database changes
 
-##Antaeus 1.2
+##Antaeus 1.2 
 - Security end to end for API rest 
 - Payment Provider mock will accept a payment token (recurring payment stored) and a payment method 
 - Implement Quartz for schedulers (Easier way to change frequency)
-- Add concurrency to manage calls to the external provider
-
+- Add concurrency to manage calls to the external provider(!!)
+dock
 #Component Diagram
 TBD 
 
-
+#Time spent and challenges during implementation
 
