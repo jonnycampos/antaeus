@@ -104,6 +104,9 @@ But also I need to find out how
 #Application Versions
 The application will be released in different versions
 ##Antaeus 1.0 
+![Alt text](doc/antaeus10.png?raw=true "Antaeus 1.0")
+
+
 MVP of the application. It will cover main requirements with the main goal
 of processing invoices to show the capabilities of the app
 Stories and Tasks to cover:
@@ -116,6 +119,7 @@ Stories and Tasks to cover:
 - Everything will run in a single docker container
 
 ##Antaeus 1.1
+![Alt text](doc/antaeus11.png?raw=true "Antaeus 1.1")
 - The scheduler will run in a different docker instance (decouple from the main logic) (!)
 - Retry mechanism based on the number of retries (Example, it will retry 3 times)
 - Payment Provider mock will return a payment state instead of a Boolean. Real Payment Providers work with states that
@@ -124,13 +128,13 @@ Stories and Tasks to cover:
 - Integration Test to check database changes
 
 ##Antaeus 1.2 
+![Alt text](doc/antaeus12.png?raw=true "Antaeus 1.2")
 - Security end to end for API rest 
 - Payment Provider mock will accept a payment token (recurring payment stored) and a payment method 
 - Implement Quartz for schedulers (Easier way to change frequency)
 - Add concurrency to manage calls to the external provider(!!)
-dock
-#Component Diagram
-TBD 
+
+
 
 #Time spent and challenges during implementation
 
