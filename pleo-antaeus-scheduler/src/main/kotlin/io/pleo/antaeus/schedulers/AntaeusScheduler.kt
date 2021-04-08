@@ -25,8 +25,13 @@ class AntaeusScheduler(
      */
     private fun callRest() {
         logger.info { "Calling the scheduler rest: $restCall"}
-        val resultRest = URL(restCall).readText()
-        logger.info { "End of API call. Processed:   $resultRest" }
+        try {
+            val resultRest = URL(restCall).readText()
+            logger.info { "End of API call. Processed:   $resultRest" }
+        } catch (e:Exception) {
+            logger.error("Error calling $restCall - ${e.message}")
+        }
+
     }
 
 

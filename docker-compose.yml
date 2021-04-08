@@ -1,6 +1,5 @@
 version: "3.9"
 
-
 services:
 
   pleo-antaeus:
@@ -23,11 +22,8 @@ services:
       context: .
     image: pleo-antaeus-scheduler
 
-
-
  # quartz:
  #  image: cexbbartolome/quartz-http:latest
-
 
 volumes:
   pleo-antaeus-build-cache:
