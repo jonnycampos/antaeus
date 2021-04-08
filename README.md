@@ -1,5 +1,5 @@
 
-#Main Challenges
+# Main Challenges
 After a first analysis I discovered these are the main challenges to solve:
 * Create a scheduler in Kotlin. Use a Cron service instead
 * Deploy the scheduler in a different docker instance to decouple from the rest service
@@ -13,10 +13,10 @@ Also I need to find out how
 * How to access and Write sqllite database
 
 
-#Application Versions
+# Application Versions
 The application will be released in different versions
 
-##Antaeus 1.0 
+## Antaeus 1.0 
 ![Alt text](doc/antaeus_10.png?raw=true "Antaeus 1.0")
 
 MVP of the application. It will cover main requirements with the main goal
@@ -31,7 +31,7 @@ of processing invoices to show the capabilities of the app
 - Simple retry mechanism to schedule daily invoices where the payment fails
 - Everything will run in a single docker container
 
-##Antaeus 1.1
+## Antaeus 1.1
 ![Alt text](doc/antaeus_11.png?raw=true "Antaeus 1.1")
 
 - The scheduler will run in a different docker instance (decouple from the main logic)
@@ -41,7 +41,7 @@ of processing invoices to show the capabilities of the app
   are different from one payment method to another.
 - Integration Test to check database changes
 
-##Antaeus 1.2 
+## Antaeus 1.2 
 ![Alt text](doc/antaeus_12.png?raw=true "Antaeus 1.2")
 
 - Security end to end for API rest 
@@ -52,13 +52,13 @@ of processing invoices to show the capabilities of the app
 
 
 
-#Time spent and challenges during implementation
+# Time spent and challenges during implementation
 
-##Version 1.0
-Time Spent - 10h (Spent during 4 days)
+## Version 1.0
+Time Spent - 10h 
 Version 1.0 is delivered completely.
 
-###Billing Logic
+### Billing Logic
 The billing logic is implemented mostly using BillingService and PaymentService
 A simple retry mechanism was added to retry failed invoices a second time.
 Added two new rest calls:
@@ -68,7 +68,7 @@ Added two new rest calls:
 ```
 
 
-###Scheduler
+### Scheduler
 The scheduler is working in a different project, but running under the same Docker instance
 It has no dependency with other projects since it is invoking the logic using rest call
 It took me a long to find out how to set up the schedulers in Kotlin. It seems there are not a
@@ -78,16 +78,16 @@ in version 1.2 as it seems the smart way to set up frequencies and there is a pr
 Kotlin to manage the integration easily.
 
 
-##Version 1.1
-Time Spent - 7h (Spent in 2 days)
+## Version 1.1
+Time Spent - 7h 
 Version 1.1 was not delivered completely. I added some features though as I wanted to learn more
 about some concepts, and I wanted to deep dive more
 
-###Billing Logic
+### Billing Logic
 I added coroutines to call the external provider asynchronously (Since there are no dependencies)
 It was not an easy task to have them running even if I read a lot of docs regarding coroutines.
 
-###Scheduler
+### Scheduler
 The scheduler is totally decoupled now, and it is running on its own docker container
 I had several issues with Docker in general. First I found several issues since I had Docker
 installed on my laptop from a very old project and systems environments were not deleted. Also
