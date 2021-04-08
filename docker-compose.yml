@@ -7,7 +7,7 @@ services:
     build:
       dockerfile: ./app.Dockerfile
       context: .
-    image: pleo-antaeus:pleo-antaeus
+    image: pleo-antaeus-app
     volumes:
       - pleo-antaeus-build-cache:/root/.gradle
     ports:
@@ -21,7 +21,7 @@ services:
     build:
       dockerfile: ./scheduler.Dockerfile
       context: .
-    image: pleo-antaeus-scheduler:pleo-antaeus
+    image: pleo-antaeus-scheduler
 
 
 
