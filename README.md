@@ -22,33 +22,33 @@ The application will be released in different versions
 MVP of the application. It will cover main requirements with the main goal
 of processing invoices to show the capabilities of the app
 
-- BillingService implementation to handle pending invoices (change status of invoices in database)
-- PaymentService to handle payments through Payment Provider 
-- Rest call to execute billing services
-- A simple scheduler in a different project with no dependency with others
-- Scheduler calls Rest API
-- JUnit Billing Service and Payment Service
-- Simple retry mechanism to schedule daily invoices where the payment fails
-- Everything will run in a single docker container
+- [x] BillingService implementation to handle pending invoices (change status of invoices in database)
+- [x] PaymentService to handle payments through Payment Provider
+- [x] Rest call to execute billing services
+- [x] A simple scheduler in a different project with no dependency with others
+- [x] Scheduler calls Rest API
+- [x] JUnit Billing Service and Payment Service
+- [x] Simple retry mechanism to schedule daily invoices where the payment fails
+- [x] Everything will run in a single docker container
 
 ## Antaeus 1.1
 ![Alt text](doc/antaeus_11.png?raw=true "Antaeus 1.1")
 
-- The scheduler will run in a different docker instance (decouple from the main logic)
-- Concurrency to manage calls to the external provider
-- Retry mechanism based on the number of retries (Example, it will retry 3 times)
-- Payment Provider mock will return a payment state instead of Boolean. Real Payment Providers work with states that
+- [x] The scheduler will run in a different docker instance (decouple from the main logic)
+- [x] Concurrency to manage calls to the external provider
+- [ ] Retry mechanism based on the number of retries (Example, it will retry 3 times)
+- [ ] Payment Provider mock will return a payment state instead of Boolean. Real Payment Providers work with states that
   are different from one payment method to another.
-- Integration Test to check database changes
+- [ ] Integration Test to check database changes
 
 ## Antaeus 1.2 
 ![Alt text](doc/antaeus_12.png?raw=true "Antaeus 1.2")
 
-- Security end to end for API rest 
-- Payment Provider mock will accept a payment token (recurring payment stored) and a payment method 
-- Implement Quartz for schedulers (Easier way to change frequency) in a new docker image
-- Database in a separate docker image
-- New scheduler to update the status of the payment executed every day
+- [ ] Security end to end for API rest 
+- [ ] Payment Provider mock will accept a payment token (recurring payment stored) and a payment method 
+- [ ] Implement Quartz for schedulers (Easier way to change frequency) in a new docker image
+- [ ] Database in a separate docker image
+- [ ] New scheduler to update the status of the payment executed every day
 
 
 
@@ -79,9 +79,9 @@ Kotlin to manage the integration easily.
 
 
 ## Version 1.1
-Time Spent - 7h 
+Time Spent - 7h
 Version 1.1 was not delivered completely. I added some features though as I wanted to learn more
-about some concepts, and I wanted to deep dive more
+about some concepts, and I wanted to deep dive more. 
 
 ### Billing Logic
 I added coroutines to call the external provider asynchronously (Since there are no dependencies)
@@ -100,3 +100,8 @@ I joined both in a docker-compose yaml file so to run both just execute:
 ```
 docker-compose up
 ```
+
+## Version 1.2
+I did not have the time to analyze the changes planned for this release.
+Anyway I tried to install a docker container with Quartz already up and running, but I got a lot of 
+issues.
